@@ -20,7 +20,7 @@ const messageDatabase = {};
 client.on('qr', async (qr) => {
     console.log('QR Code එකක් ලැබුණා, නමුත් අපි Pairing Code එකක් Generate කරනවා...');
     try {
-        const myNumber = "9477XXXXXXX"; // <--- ඔයාගේ Bot Number එක මෙතනට දාන්න!
+        const myNumber = "94756086474"; // <--- ඔයාගේ Bot Number එක මෙතනට දාන්න!
         const pairingCode = await client.requestPairingCode(myNumber);
         console.log('======================================');
         console.log(`YOUR WHATSAPP PAIRING CODE: ${pairingCode}`);
@@ -54,7 +54,6 @@ client.on('message_revoke_everyone', async (after, before) => {
             notification += `👤 *එවූ පුද්ගලයා:* @${deletedMsg.sender.split('@')[0]}\n`;
             notification += `💬 *මැසේජ් එක:* ${deletedMsg.body || '[Media හෝ වෙනත් දෙයක්]'}`;
             
-            // Bot ගේ Chat එකට හෝ Group එකට Notification එක යවයි
             await client.sendMessage(before.from, notification, {
                 mentions: [deletedMsg.sender]
             });
@@ -62,33 +61,73 @@ client.on('message_revoke_everyone', async (after, before) => {
     }
 });
 
-// Bot commands සහ replies ක්‍රියාත්මක වන ප්‍රධාන කොටස
+// Bot commands සහ replies
 client.on('message', async (msg) => {
     const text = msg.body.trim();
     const command = text.toLowerCase();
 
-    // 1. AUTO REPLY & MENU
-    if (command === 'hi' || command === 'hello' || command === 'menu' || command === 'help') {
-        const menuText = `👋 *හෙලෝ! මම ඔයාගේ 24/7 WhatsApp Bot.*\n\n` +
-                         `🤖 *මගේ Commands පහතින් බලාගන්න:*\n\n` +
-                         `📌 *.getdp @tag* - Tag කරන කෙනාගේ DP එක Download කරගන්න.\n` +
-                         `📌 *.getdp number* - Number එක දීලා DP එක Download කරන්න (उदा: .getdp 94771234567)\n` +
-                         `📌 *Status Download* - ඔයාට ඕනෙම Status එකක් Botට Forward කරන්න, Bot ඒක ඔයාට එවයි.\n` +
-                         `📌 *Anti-Delete* - කවුරුහරි මැසේජ් එකක් Delete කලොත් මම ඒක ඔටෝ පෙන්වනවා.\n\n` +
-                         `⚡ _Created by You_`;
+    // 1. AUTO REPLY & NEW BEAUTIFUL PHOTO MENU WITH NAME (.menu හෝ help ගැහුවාම)
+    if (command === '.menu' || command === 'menu' || command === 'help' || command === 'hi' || command === 'hello') {
         
-        await msg.reply(menuText);
+        // Menu එකත් එක්ක යවන්න ඕන Photo එකේ Link එක (මෙතනට ඔයාට කැමති Image Link එකක් දාන්න පුළුවන්)
+        const imageUrl = 'https://raw.githubusercontent.com/wwebjs/webjs-site/main/static/img/whatsapp-web-js.png';
+        
+        const menuText = 
+`╔══════════════════════╗
+   🤖  *DENETH MD BOT*  🤖
+╚══════════════════════╝
+
+👋 *හෙලෝ! මම Deneth MD 24/7 ක්‍රියාකාරී WhatsApp Bot එකයි.*
+
+📊 *BOT STATUS:* Active 🟢
+⏰ *RUNTIME:* 24 Hours
+
+👑 *【 MAIN COMMANDS / මෙනුව 】*
+
+⚡ *.menu* 
+└─ දැනට තියෙන සියලුම Commands බලාගැනීමට.
+
+📸 *【 PROFILE TOOLS 】*
+
+⚡ *.getdp @tag*
+└─ Tag කරන කෙනාගේ Profile Picture එක Download කරගැනීමට.
+
+⚡ *.getdp [Number]*
+└─ Number එකක් දීලා DP එක ගැනීමට.
+   *(උදා: .getdp 94771234567)*
+
+📥 *【 DOWNLOAD TOOLS 】*
+
+⚡ *.status* (Reply/Forward)
+└─ ඔයාට ලැබෙන Status (Video/Image) එකක් Bot වෙත Forward කර, ඊට Reply එකක් ලෙස *.status* ලෙස යැවීමෙන් එය Download කරගත හැක.
+
+🛡️ *【 SAFETY TOOLS 】*
+
+🚫 *Anti-Delete (Auto)*
+└─ ඕනෑම කෙනෙක් Chat එකට එවූ මැසේජ් එකක් Delete කලහොත්, Bot එය ස්වයංක්‍රීයව නැවත පෙන්වයි. (Command අවශ්‍ය නොවේ)
+
+💡 *වැඩේ සුපිරියටම කරන්න, Commands නිවැරදිව පාවිච්චි කරන්න.*
+───────────────────────`;
+        
+        try {
+            // Internet එකෙන් Photo එක Load කරගන්නවා
+            const media = await MessageMedia.fromUrl(imageUrl);
+            // Photo එකත් එක්ක Text එක Caption එක විදිහට යවනවා
+            await client.sendMessage(msg.from, media, { caption: menuText });
+        } catch (error) {
+            console.error('Menu Photo එක යවන්න බැරි වුණා:', error);
+            // මොකක් හරි හේතුවකින් Photo එක Load නොවුනොත් සාමාන්‍ය විදිහට මැසේජ් එක විතරක් යවනවා
+            await msg.reply(menuText);
+        }
     }
 
     // 2. DP DOWNLOADER (.getdp @tag හෝ .getdp 9477xxxxxxx)
     if (command.startsWith('.getdp')) {
         let targetJid = '';
         
-        // Tag කරලා තිබුණොත්
         if (msg.mentionedIds.length > 0) {
             targetJid = msg.mentionedIds[0];
         } else {
-            // Number එකක් Type කරලා තිබුණොත්
             const num = text.replace('.getdp', '').trim();
             if (num) {
                 targetJid = num.includes('@c.us') ? num : `${num}@c.us`;
@@ -115,10 +154,8 @@ client.on('message', async (msg) => {
         }
     }
 
-    // 3. STATUS DOWNLOADER (Forward කරපු Status වීඩියෝ/පින්තූර ඩවුන්ලෝඩ් කිරීම)
-    // වෙනත් අයෙකුගේ Status එකක් Bot වෙත Forward කළ විට, Bot එය නැවත එවයි.
+    // 3. STATUS DOWNLOADER
     if (msg.hasMedia && msg.isStatus === false) {
-        // Chat එකකදී කෙලින්ම Forward කරන හෝ එවන ඕනෑම Media එකක් Bot හරහා නැවත ලබාගත හැක.
         if (text.toLowerCase() === '.status' || text.toLowerCase() === 'download') {
             try {
                 const media = await msg.downloadMedia();
